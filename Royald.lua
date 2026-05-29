@@ -1,4 +1,4 @@
--- [[ ROYALD PRO HUB v34: UNIVERSAL ALL SEAS CHEST FARM & SMOOTH ENGINE ]] --
+-- [[ ROYALD PRO HUB v37: REORDERED & NEW TABS EDITION ]] --
 
 local UIS = game:GetService("UserInputService")
 local players = game:GetService("Players")
@@ -6,13 +6,13 @@ local player = players.LocalPlayer
 local camera = workspace.CurrentCamera
 
 -- UI ဟောင်းရှိရင် အမြန်ရှင်းထုတ်ခြင်း
-if game.CoreGui:FindFirstChild("RoyaldProHubV34") then
-    game.CoreGui.RoyaldProHubV34:Destroy()
+if game.CoreGui:FindFirstChild("RoyaldProHubV37") then
+    game.CoreGui.RoyaldProHubV37:Destroy()
 end
 
 -- ScreenGui ဆောက်ခြင်း
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "RoyaldProHubV34"
+ScreenGui.Name = "RoyaldProHubV37"
 ScreenGui.Parent = game.CoreGui
 ScreenGui.ResetOnSpawn = false
 
@@ -56,7 +56,7 @@ MainFrame.InputChanged:Connect(function(input) if input.UserInputType == Enum.Us
 UIS.InputChanged:Connect(function(input) if input == dragInput and dragging then local delta = input.Position - dragStart; MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y) end end)
 
 ----------------------------------------------------
--- [ SIDEBAR ] --
+-- [ SIDEBAR & TABS ] --
 ----------------------------------------------------
 SideBar.Name = "SideBar"
 SideBar.Parent = MainFrame
@@ -65,8 +65,17 @@ SideBar.Position = UDim2.new(0, 0, 0, 30)
 SideBar.Size = UDim2.new(0, 130, 1, -30)
 local SBCorner = Instance.new("UICorner") SBCorner.CornerRadius = UDim.new(0, 10) SBCorner.Parent = SideBar
 
+-- Sidebar Scrolling Component for holding more tabs cleanly
+local SBScroll = Instance.new("ScrollingFrame")
+SBScroll.Size = UDim2.new(1, 0, 1, -10)
+SBScroll.Position = UDim2.new(0, 0, 0, 5)
+SBScroll.BackgroundTransparency = 1
+SBScroll.CanvasSize = UDim2.new(0, 0, 0, 200)
+SBScroll.ScrollBarThickness = 2
+SBScroll.Parent = SideBar
+
 local SBList = Instance.new("UIListLayout")
-SBList.Parent = SideBar
+SBList.Parent = SBScroll
 SBList.Padding = UDim.new(0, 6)
 SBList.HorizontalAlignment = Enum.HorizontalAlignment.Center
 SBList.SortOrder = Enum.SortOrder.LayoutOrder
@@ -78,12 +87,23 @@ ContentPage.Position = UDim2.new(0, 135, 0, 35)
 ContentPage.Size = UDim2.new(0, 320, 1, -40)
 local CPCorner = Instance.new("UICorner") CPCorner.CornerRadius = UDim.new(0, 8) CPCorner.Parent = ContentPage
 
-local PvpPage = Instance.new("Frame")
+-- Create Pages
+local HomePage = Instance.new("Frame")
 local FarmPage = Instance.new("ScrollingFrame")
+local PvpPage = Instance.new("Frame")
+local ShopPage = Instance.new("Frame")
+local ServerPage = Instance.new("Frame")
 
-PvpPage.Size = UDim2.new(1, 0, 1, 0)
-PvpPage.BackgroundTransparency = 1
-PvpPage.Parent = ContentPage
+local function SetupPageStyle(page)
+    page.Size = UDim2.new(1, 0, 1, 0)
+    page.BackgroundTransparency = 1
+    page.Parent = ContentPage
+end
+
+SetupPageStyle(HomePage)
+SetupPageStyle(PvpPage)
+SetupPageStyle(ShopPage)
+SetupPageStyle(ServerPage)
 
 FarmPage.Size = UDim2.new(1, 0, 1, 0)
 FarmPage.BackgroundTransparency = 1
@@ -91,8 +111,12 @@ FarmPage.CanvasSize = UDim2.new(0, 0, 0, 260)
 FarmPage.ScrollBarThickness = 3
 FarmPage.Parent = ContentPage
 
-local PvpTabBtn = Instance.new("TextButton")
+-- Tab Buttons
+local HomeTabBtn = Instance.new("TextButton")
 local FarmTabBtn = Instance.new("TextButton")
+local PvpTabBtn = Instance.new("TextButton")
+local ShopTabBtn = Instance.new("TextButton")
+local ServerTabBtn = Instance.new("TextButton")
 
 local function SetupTab(btn, text, order)
     btn.Size = UDim2.new(0, 120, 0, 32)
@@ -102,38 +126,75 @@ local function SetupTab(btn, text, order)
     btn.TextColor3 = Color3.fromRGB(140, 140, 140)
     btn.TextSize = 10
     btn.LayoutOrder = order
-    btn.Parent = SideBar
+    btn.Parent = SBScroll
     local c = Instance.new("UICorner") c.CornerRadius = UDim.new(0, 6) c.Parent = btn
 end
 
-SetupTab(PvpTabBtn, "⚔️ PvP,Player", 1)
+-- အစီအစဉ်အတိုင်း သတ်မှတ်ခြင်း (Home -> Farm -> PvP -> Shop -> Server)
+SetupTab(HomeTabBtn, "🏠 Home", 1)
 SetupTab(FarmTabBtn, "Farm 🪓", 2)
+SetupTab(PvpTabBtn, "⚔️ PvP,Player", 3)
+SetupTab(ShopTabBtn, "🛒 Shop", 4)
+SetupTab(ServerTabBtn, "🌐 Server", 5)
 
 local FarmDropdownScroll = Instance.new("ScrollingFrame")
 local PvpDropdownScroll = Instance.new("ScrollingFrame")
 
 local function switchTab(activeBtn, activePage)
-    PvpPage.Visible = false
+    HomePage.Visible = false
     FarmPage.Visible = false
+    PvpPage.Visible = false
+    ShopPage.Visible = false
+    ServerPage.Visible = false
     PvpDropdownScroll.Visible = false
     FarmDropdownScroll.Visible = false
-    PvpTabBtn.TextColor3 = Color3.fromRGB(140, 140, 140)
-    PvpTabBtn.BackgroundColor3 = Color3.fromRGB(20, 24, 35)
+    
+    HomeTabBtn.TextColor3 = Color3.fromRGB(140, 140, 140) or Color3.fromRGB(20, 24, 35)
+    HomeTabBtn.BackgroundColor3 = Color3.fromRGB(20, 24, 35)
     FarmTabBtn.TextColor3 = Color3.fromRGB(140, 140, 140)
     FarmTabBtn.BackgroundColor3 = Color3.fromRGB(20, 24, 35)
+    PvpTabBtn.TextColor3 = Color3.fromRGB(140, 140, 140)
+    PvpTabBtn.BackgroundColor3 = Color3.fromRGB(20, 24, 35)
+    ShopTabBtn.TextColor3 = Color3.fromRGB(140, 140, 140)
+    ShopTabBtn.BackgroundColor3 = Color3.fromRGB(20, 24, 35)
+    ServerTabBtn.TextColor3 = Color3.fromRGB(140, 140, 140)
+    ServerTabBtn.BackgroundColor3 = Color3.fromRGB(20, 24, 35)
     
     activePage.Visible = true
     activeBtn.TextColor3 = Color3.fromRGB(0, 170, 255)
     activeBtn.BackgroundColor3 = Color3.fromRGB(30, 40, 60)
 end
 
-PvpTabBtn.MouseButton1Click:Connect(function() switchTab(PvpTabBtn, PvpPage) end)
+HomeTabBtn.MouseButton1Click:Connect(function() switchTab(HomeTabBtn, HomePage) end)
 FarmTabBtn.MouseButton1Click:Connect(function() switchTab(FarmTabBtn, FarmPage) end)
+PvpTabBtn.MouseButton1Click:Connect(function() switchTab(PvpTabBtn, PvpPage) end)
+ShopTabBtn.MouseButton1Click:Connect(function() switchTab(ShopTabBtn, ShopPage) end)
+ServerTabBtn.MouseButton1Click:Connect(function() switchTab(ServerTabBtn, ServerPage) end)
 
-switchTab(PvpTabBtn, "Farm 🪓" and FarmPage or PvpPage)
+-- Default Open Page
+switchTab(HomeTabBtn, HomePage)
 
 ----------------------------------------------------
--- [ ⚙️ CONTENT 1: PvP,Player TAB ] --
+-- [ ⚙️ REUSABLE COMING SOON GENERATOR ] --
+----------------------------------------------------
+local function createComingSoon(parentFrame, text)
+    local Label = Instance.new("TextLabel")
+    Label.Parent = parentFrame
+    Label.BackgroundTransparency = 1
+    Label.Size = UDim2.new(1, 0, 1, 0)
+    Label.Font = Enum.Font.GothamBold
+    Label.Text = text
+    Label.TextColor3 = Color3.fromRGB(0, 170, 255)
+    Label.TextSize = 13
+    Label.TextAlignment = Enum.TextAlignment.Center
+end
+
+createComingSoon(HomePage, "✨ Home Page - Coming Soon... ✨")
+createComingSoon(ShopPage, "🛒 Shop Features - Coming Soon... ✨")
+createComingSoon(ServerPage, "🌐 Server Options - Coming Soon... ✨")
+
+----------------------------------------------------
+-- [ ⚙️ CONTENT: PvP,Player TAB ] --
 ----------------------------------------------------
 local isInvisible = false
 local InvisBtn = Instance.new("TextButton")
@@ -300,7 +361,7 @@ task.spawn(function()
 end)
 
 ----------------------------------------------------
--- [ ⚙️ CONTENT 2: Farm 🪓 TAB ] --
+-- [ ⚙️ CONTENT: Farm 🪓 TAB ] --
 ----------------------------------------------------
 local UIListLayoutFarm = Instance.new("UIListLayout")
 UIListLayoutFarm.Parent = FarmPage
@@ -363,7 +424,6 @@ end
 
 FarmDropdownButton.MouseButton1Click:Connect(function() updateFarmScrollPos(); FarmDropdownScroll.Visible = not FarmDropdownScroll.Visible end)
 
--- 🚜 LEVEL FARM TOGGLE BUTTON
 _G.LevelFarmActive = false
 local LevelFarmBtn = Instance.new("TextButton")
 LevelFarmBtn.Parent = FarmPage
@@ -376,7 +436,6 @@ LevelFarmBtn.TextSize = 10
 local LFB_Corner = Instance.new("UICorner") LFB_Corner.Parent = LevelFarmBtn
 local LFB_Stroke = Instance.new("UIStroke") LFB_Stroke.Thickness = 1 LFB_Stroke.Color = Color3.fromRGB(50, 55, 65) LFB_Stroke.Parent = LevelFarmBtn
 
--- 🎯 NEAREST ATTACK TOGGLE BUTTON
 _G.NearestAttackActive = false
 local NearestAttackBtn = Instance.new("TextButton")
 NearestAttackBtn.Parent = FarmPage
@@ -389,7 +448,6 @@ NearestAttackBtn.TextSize = 10
 local NAB_Corner = Instance.new("UICorner") NAB_Corner.Parent = NearestAttackBtn
 local NAB_Stroke = Instance.new("UIStroke") NAB_Stroke.Thickness = 1 NAB_Stroke.Color = Color3.fromRGB(50, 55, 65) NAB_Stroke.Parent = NearestAttackBtn
 
--- 💰 AUTO CHEST FARM TOGGLE BUTTON
 _G.AutoChestActive = false
 local ChestFarmBtn = Instance.new("TextButton")
 ChestFarmBtn.Parent = FarmPage
@@ -446,7 +504,6 @@ end)
 ----------------------------------------------------
 -- [ 🚀 UNIVERSAL ALL-SEAS ENGINE CORE ] --
 ----------------------------------------------------
--- အနီးဆုံးရန်သူ (NPC) ကို ရှာဖွေမည့် Function
 local function getNearestEnemy()
     local nearest = nil
     local maxDist = math.huge
@@ -465,36 +522,28 @@ local function getNearestEnemy()
     return nearest
 end
 
--- 🌐 UNIVERSAL ALL SEAS CHEST DETECTOR ENGINE 🔒
 local function getNearestChest()
     local nearestChest = nil
     local maxDist = math.huge
     local myRoot = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
     if not myRoot then return nil end
 
-    -- Sea 1, 2, 3 မြေပုံအားလုံးမှာရှိတဲ့ Chest တွေကို Scan ဖတ်တာသေချာစေရန် Workspace တစ်ခုလုံးကို ရှာဖွေခြင်း
     for _, v in pairs(workspace:GetDescendants()) do
         if v:IsA("BasePart") and (v.Name:find("Chest") or v.Name:lower():find("chest")) then
             local dist = (myRoot.Position - v.Position).Magnitude
-            if dist < maxDist then
-                nearestChest = v
-                maxDist = dist
-            end
+            if dist < maxDist then nearestChest = v; maxDist = dist end
         elseif v:IsA("Model") and (v.Name:find("Chest") or v.Name:lower():find("chest")) then
             local part = v:FindFirstChildOfClass("Part") or v:FindFirstChildOfClass("MeshPart") or v:FindFirstChild("Part")
             if part then
                 local dist = (myRoot.Position - part.Position).Magnitude
-                if dist < maxDist then
-                    nearestChest = part
-                    maxDist = dist
-                end
+                if dist < maxDist then nearestChest = part; maxDist = dist end
             end
         end
     end
     return nearestChest
 end
 
--- 🌀 ANTI-SHAKE & SMOOTH ABOVE-HEAD CORE LOOP
+-- 🌀 CORE MAIN LOOP
 task.spawn(function()
     while true do
         task.wait(0.01)
@@ -503,26 +552,18 @@ task.spawn(function()
             local myRoot = char and char:FindFirstChild("HumanoidRootPart")
             
             if myRoot then
-                -- ၁။ Level Farm / Nearest Attack စနစ် (ရန်သူ့ခေါင်းပေါ် Lock)
                 if _G.LevelFarmActive or _G.NearestAttackActive then
                     local targetNPC = getNearestEnemy()
                     if targetNPC and targetNPC:FindFirstChild("HumanoidRootPart") then
                         local enemyRoot = targetNPC.HumanoidRootPart
                         myRoot.CFrame = enemyRoot.CFrame * CFrame.new(0, 4, 0) * CFrame.Angles(math.rad(-90), 0, 0)
-                        
-                        -- Anti-Shake
                         myRoot.Velocity = Vector3.new(0, 0, 0)
                         myRoot.RotVelocity = Vector3.new(0, 0, 0)
                     end
-                
-                -- ၂။ Auto Chest Farm (Universal All Seas Support) 💰
                 elseif _G.AutoChestActive then
                     local targetChest = getNearestChest()
                     if targetChest then
-                        -- သေတ္တာပေါ် ကွက်တိ အငြိမ် သွားကောက်ပေးခြင်း
                         myRoot.CFrame = targetChest.CFrame * CFrame.new(0, 1.5, 0)
-                        
-                        -- Anti-Shake Velocity ရှင်းထုတ်စနစ်
                         myRoot.Velocity = Vector3.new(0, 0, 0)
                         myRoot.RotVelocity = Vector3.new(0, 0, 0)
                     end
